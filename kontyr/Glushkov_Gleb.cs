@@ -26,15 +26,9 @@ namespace Game
                     break;
             } while (true);
         }
-        class InfoStorage : IEnumerable, IEnumerator
+        class InfoStorage
         {
             private int[,] graph;
-            private int index = -1;
-            private int column_index = -1;
-            public int SetIenumeratorColumn
-            {
-                set { column_index = value; }
-            }
             /// <summary>
             /// Двумерный массив для хранения информации о картах в руке или на столе
             /// </summary>
@@ -116,31 +110,15 @@ namespace Game
             {
                 Array.Clear(this.graph, 0, (SearchInformation.MaxCardForHand * SearchInformation.MaxCardForHand));
             }
-            public IEnumerator GetEnumerator()
-            {
-                return this;
-            }
-            public bool MoveNext()
-            {
-                if (index == SearchInformation.MaxCardForHand - 1)
-                {
-                    Reset();
-                    return false;
-                }
-
-                index++;
-                return true;
-            }
-            public void Reset()
-            {
-                this.index = -1;
-                this.SetIenumeratorColumn = -1;
-            }
-            public object Current
+            public int this[int line, int column]
             {
                 get
                 {
-                    return graph[index, column_index];
+                    return GetValueOfCell(line, column);
+                }
+                set
+                {
+                    SetValueInCell(line, column, value);
                 }
             }
         }
@@ -156,9 +134,9 @@ namespace Game
             private static string[] InfoParse = new string[5] { _ParseStart, _ParsePlay, _ParseDrop, _ParseTC, _ParseTR };
             public enum Color { Blue = 1, Green = 2, Red = 3, White = 4, Yellow = 5 };
             public enum Command { Play, Drop, Color, Rank };
-            public static int GetCountInfoParse()
+            public static int GetCountInfoParse
             {
-                return InfoParse.Length;
+                get { return InfoParse.Length; }
             }
             /// <summary>
             /// Вернуть строку для регулярного выражения
@@ -255,7 +233,7 @@ namespace Game
                 initial_data = initial_data.ToUpper();
                 int number_command = -1;
                 List<string> _data = new List<string>();
-                for (int i = 0; i < SearchInformation.GetCountInfoParse(); i++)
+                for (int i = 0; i < SearchInformation.GetCountInfoParse; i++)
                 {
                     if (CheckCorrectAction(SearchInformation.GetInformationString(i), initial_data))
                     {
@@ -417,23 +395,23 @@ namespace Game
                 #endregion
                 bool check_card = false;
                 for (int k = 0; k < MaxCountCard; k++)
-                    _graph.SetValueInCell(k, column, 0);
-                _graph.SetValueInCell(line, column, 1);
+                    _graph[k, column] = 0;
+                _graph[line, column] = 1;
                 for (int _line = 0; _line < MaxCountCard; _line++)
                 {
                     for (int _column = 0; _column < MaxCountCard; _column++)
                     {
                         for (int z = 0; z < MaxCountCard; z++)
                         {
-                            if (_graph.GetValueOfCell(z, _column) == 1)
+                            if (_graph[z, _column] == 1)
                             {
                                 check_card = true;
                                 break;
                             }
                         }
                         if (_column != column && !check_card)
-                            if (_graph.GetValueOfCell(_line, _column) != 3)
-                                _graph.SetValueInCell(_line, _column, 2);
+                            if (_graph[_line, _column] != 3)
+                                _graph[_line, _column] =  2;
                         check_card = false;
                     }
                 }
@@ -443,14 +421,14 @@ namespace Game
                 {
                     for (int _column = 0; _column < MaxCountCard; _column++)
                     {
-                        if (_graph.GetValueOfCell(_column, _line) == 1)
+                        if (_graph[_column, _line] == 1)
                         {
                             check_card = true;
                             break;
                         }
                     }
                     if (!check_card)
-                        _graph.SetValueInCell(line, _line, 3);
+                        _graph[line, _line] = 3;
                     check_card = false;
                 }
             }
@@ -468,7 +446,7 @@ namespace Game
                 int possibility = 0;
                 for (int k = 0; k < MaxCountCard; k++)
                 {
-                    if (_graph.GetValueOfCell(k, number_card) == 2)
+                    if (_graph[k, number_card] == 2)
                     {
                         possibility++;
                         if (state)
@@ -501,9 +479,9 @@ namespace Game
                 List<Tuple<int, int>> Possibility = new List<Tuple<int, int>>();
                 for (int i = 0; i < MaxCountCard; i++)
                 {
-                    if (graphColorChange.GetValueOfCell(number_card, i) == 2)
+                    if (graphColorChange[number_card, i] == 2)
                         for (int j = 0; j < MaxCountCard; j++)
-                            if (graphRankChange.GetValueOfCell(number_card, j) == 2)
+                            if (graphRankChange[number_card, j] == 2)
                                 Possibility.Add(Tuple.Create(i, j));
                            
                 }
@@ -527,7 +505,7 @@ namespace Game
             /// <returns></returns>
             protected override Card Play(int number_card, string table_info)
             {
-                Card fc = (Card)myDeck.GetCard(number_card).Clone();
+                Card fc = (Card)myDeck[number_card].Clone();
                 if (IsLevel)
                 {
                     if (graphRankChange.CompareWithOne(fc.Number - 1, number_card) && graphColorChange.CompareWithOne(fc.Color, number_card))
@@ -559,7 +537,7 @@ namespace Game
             {
                 try
                 {
-                    Card fc = (Card)myDeck.GetCard(number_card).Clone();
+                    Card fc = (Card)myDeck[number_card].Clone();
                     if (IsLevel)
                         this.SetNewInfo(number_card);
                     return fc;
@@ -660,14 +638,14 @@ namespace Game
                 {
                     for (int k = i; k < MaxCountCard - 1; k++)
                     {
-                        graphColorChange.SetValueInCell(j, k, graphColorChange.GetValueOfCell(j, k + 1));
-                        graphRankChange.SetValueInCell(j, k, graphRankChange.GetValueOfCell(j, k + 1));
+                        graphColorChange[j, k] = graphColorChange[j, k + 1];
+                        graphRankChange[j, k] = graphRankChange[j, k + 1];
                     }
                 }
                 for (int j = 0; j < MaxCountCard; j++)
                 {
-                    graphColorChange.SetValueInCell(j, MaxCountCard - 1, 0);
-                    graphRankChange.SetValueInCell(j, MaxCountCard - 1, 0);
+                    graphColorChange[j, MaxCountCard - 1] = 0;
+                    graphRankChange[j, MaxCountCard - 1] = 0;
                 }
             }
             /// <summary>
@@ -764,85 +742,9 @@ namespace Game
         {
             void Push(string data);
             void Push(Card card);
-            Card GetCard();
-            Card GetCard(int index);
             void Clear();
             int CountCard { get; }
-        }
-        /// <summary>
-        /// Поле игры
-        /// </summary>
-        sealed class FieldDeck : IParentDeck
-        {        
-            #region singleton
-            private static readonly Lazy<FieldDeck> lazy =
-            new Lazy<FieldDeck>(() => new FieldDeck());
-            public static FieldDeck Instance { get { return lazy.Value; } }
-            #endregion
-            private List<Card> CardList;
-            private InfoStorage graph;
-            private FieldDeck()
-            {
-                graph = new InfoStorage();
-                CardList = new List<Card>();
-            }
-            public int CountCard
-            {
-                get { return CardList.Count; }
-            }
-            public void Clear()
-            {
-                CardList.Clear();
-                graph.Clear();
-            }
-            public void Push(Card card)
-            {
-                int color = card.Color;
-                if (graph.CheckCorrectPreviousPosition(color, card.Number - 1) && !graph.CompareWithOne(color, card.Number - 1))
-                {
-                    graph.SetValueInCell(color, card.Number - 1, 1);
-                    CardList.Add(card);
-                }
-                else
-                {
-                    throw new CardException("Не корректная карта");
-                }
-            }
-            public void Push(string data)
-            {
-                var newData = data.GetUpperStringToArray();
-                foreach (string cards in newData)
-                {
-                    Card card = new Card((cards[0]).ToString(), Convert.ToInt32((cards[1]).ToString()));
-                    Push(card);
-                }
-            }
-            public Card GetCard()
-            {
-                throw new CardException("Нельзя брать карты из этой колоды");
-            }
-            public Card GetCard(int index)
-            {
-                throw new CardException("Нельзя брать карты из этой колоды");
-            }
-            public override string ToString()
-            {
-                string line_state = String.Empty;
-                int max_rank = 0;
-                int[] info_rank = new int[SearchInformation.MaxCardForHand];
-                for (int i = 0; i < SearchInformation.MaxCardForHand; i++)
-                {
-                    for (int j = 0; j < SearchInformation.MaxCardForHand; j++)
-                        if (graph.CompareWithOne(i, j))
-                            max_rank++;
-
-                    info_rank[i] = max_rank;
-                    max_rank = 0;
-                }
-                for (int i = 0; i < info_rank.Length; i++)
-                    line_state += string.Format(SearchInformation.GetIntByColor(i) + info_rank[i].ToString() + " ");
-                return line_state;
-            }
+            Card this[int index]{get;}
         }
         /// <summary>
         /// Главная колода
@@ -879,16 +781,12 @@ namespace Game
                     this.Push(new Card(card[0].ToString(), Convert.ToInt32(card[1].ToString())));
                 }
             }
-            public Card GetCard()
-            {
-                return UpdateList();
-            }
-            private Card UpdateList()
+            private Card UpdateList(int index = 0)
             {
                 try
                 {
-                    Card card = (Card)CardList[0].Clone();
-                    CardList.RemoveAt(0);
+                    Card card = (Card)CardList[index].Clone();
+                    this.CardList.RemoveAt(index);
                     return card;
                 }
                 catch (ArgumentOutOfRangeException e)
@@ -896,9 +794,12 @@ namespace Game
                     throw e;
                 }
             }
-            public Card GetCard(int index)
+            public Card this[int index]
             {
-                throw new CardException("Бери карты по порядку");
+                get
+                {
+                    return UpdateList();
+                }
             }
         }
         /// <summary>
@@ -959,14 +860,6 @@ namespace Game
                     throw e;
                 }
             }
-            public Card GetCard()
-            {
-                return UpdateList();
-            }
-            public Card GetCard(int index)
-            {
-                return UpdateList(index);
-            }
             /// <summary>
             /// Посмотреть значения ранга и цвета не извлекая карты из руки. Только для вывода состояния на экран.
             /// </summary>
@@ -984,7 +877,85 @@ namespace Game
                     throw e;
                 }
             }
+            public Card this[int index]
+            {
+                get
+                {
+                    return UpdateList(index);
+                }
+            }
         }
+        /// <summary>
+        /// Поле игры
+        /// </summary>
+        sealed class FieldDeck : IParentDeck
+        {        
+            #region singleton
+            private static readonly Lazy<FieldDeck> lazy =
+            new Lazy<FieldDeck>(() => new FieldDeck());
+            public static FieldDeck Instance { get { return lazy.Value; } }
+            #endregion
+            private List<Card> CardList;
+            private InfoStorage graph;
+            private FieldDeck()
+            {
+                graph = new InfoStorage();
+                CardList = new List<Card>();
+            }
+            public int CountCard
+            {
+                get { return CardList.Count; }
+            }
+            public void Clear()
+            {
+                CardList.Clear();
+                graph.Clear();
+            }
+            public void Push(Card card)
+            {
+                int color = card.Color;
+                if ( !graph.CompareWithOne(color, card.Number - 1) && graph.CheckCorrectPreviousPosition(color, card.Number - 1))
+                {
+                    graph[color, card.Number - 1] =  1;
+                    CardList.Add(card);
+                }
+                else
+                {
+                    throw new CardException("Не корректная карта");
+                }
+            }
+            public void Push(string data)
+            {
+                var newData = data.GetUpperStringToArray();
+                foreach (string cards in newData)
+                {
+                    Card card = new Card((cards[0]).ToString(), Convert.ToInt32((cards[1]).ToString()));
+                    Push(card);
+                }
+            }
+            public override string ToString()
+            {
+                string line_state = String.Empty;
+                int max_rank = 0;
+                int[] info_rank = new int[SearchInformation.MaxCardForHand];
+                for (int i = 0; i < SearchInformation.MaxCardForHand; i++)
+                {
+                    for (int j = 0; j < SearchInformation.MaxCardForHand; j++)
+                        if (graph.CompareWithOne(i, j))
+                            max_rank++;
+
+                    info_rank[i] = max_rank;
+                    max_rank = 0;
+                }
+                for (int i = 0; i < info_rank.Length; i++)
+                    line_state += string.Format(SearchInformation.GetIntByColor(i) + info_rank[i].ToString() + " ");
+                return line_state;
+            }
+            public Card this[int index]
+            {
+                get { throw new CardException("Нельзя брать карты из этой колоды"); }
+            }
+        }      
         /// <summary>
         /// Колода для сброса
         /// </summary>
@@ -1020,13 +991,9 @@ namespace Game
                     this.Push(new Card(card[0].ToString(), Convert.ToInt32(card[1].ToString())));
                 }
             }
-            public Card GetCard()
+            public Card this[int index]
             {
-                throw new CardException("Нельзя брать карты из этой колоды");
-            }
-            public Card GetCard(int index)
-            {
-                throw new CardException("Нельзя брать карты из этой колоды");
+                get { throw new CardException("Нельзя брать карты из этой колоды"); }
             }
         }
         /// <summary>
@@ -1200,7 +1167,7 @@ namespace Game
                 {
                     fc = (Card)player.PlayerAction(command, SearchInformation.Command.Play, fieldeck.ToString()).Clone();
                     fieldeck.Push(fc);
-                    player.Push(generaldeck.GetCard());
+                    player.Push(generaldeck[0]);
                     if (!player.GetInfoRisky)
                         CorrectCard++;
                 }
@@ -1213,7 +1180,7 @@ namespace Game
             private void DropCrad(string command, Player player)
             {
                 stackdeck.Push(player.PlayerAction(command, SearchInformation.Command.Drop, null));
-                player.Push(generaldeck.GetCard());
+                player.Push(generaldeck[0]);
             }
             private void TellColor(string command, Player player)
             {
