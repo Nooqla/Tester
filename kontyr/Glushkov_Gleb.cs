@@ -29,15 +29,15 @@ namespace Game
         /// <summary>
         /// Двумерный массив для хранения информации о текущем наборе карт.
         /// </summary>
-        class InfoStorage
+        class InformationCardStorage
         {
             private int[,] graph;
             /// <summary>
             /// Двумерный массив для хранения информации о картах в руке или на столе
             /// </summary>
-            public InfoStorage()
+            public InformationCardStorage()
             {
-                this.graph = new int[SearchInformation.MaxCardForHand, SearchInformation.MaxCardForHand];
+                this.graph = new int[InformationCard.MaxCardForHand, InformationCard.MaxCardForHand];
             }
             /// <summary>
             /// Сравнить  значение ячейки с единицей
@@ -77,7 +77,7 @@ namespace Game
             /// <returns></returns>
             private int GetValueOfCell(int line, int column)
             {
-                if ((line >= 0 && line < SearchInformation.MaxCardForHand) && (column >= 0 && column < SearchInformation.MaxCardForHand))
+                if ((line >= 0 && line < InformationCard.MaxCardForHand) && (column >= 0 && column < InformationCard.MaxCardForHand))
                 {
                     return this.graph[line, column];
                 }
@@ -111,7 +111,7 @@ namespace Game
             }
             public void Clear()
             {
-                Array.Clear(this.graph, 0, (SearchInformation.MaxCardForHand * SearchInformation.MaxCardForHand));
+                Array.Clear(this.graph, 0, (InformationCard.MaxCardForHand * InformationCard.MaxCardForHand));
             }
             public int this[int line, int column]
             {
@@ -128,7 +128,7 @@ namespace Game
         /// <summary>
         /// Вспомогательный класс для хранения проверочных строк и представления входных данных для хранения о них информации 
         /// </summary>
-        static class SearchInformation
+        static class InformationCard
         {
             public const int MaxCardForHand = 5;
             public static string _ParseCard = "[YRGBW]+[1-5]";
@@ -239,9 +239,9 @@ namespace Game
                 initial_data = initial_data.ToUpper();
                 int number_command = -1;
                 List<string> _data = new List<string>();
-                for (int i = 0; i < SearchInformation.GetCountInfoParse; i++)
+                for (int i = 0; i < InformationCard.GetCountInfoParse; i++)
                 {
-                    if (CheckCorrectAction(SearchInformation.GetInformationString(i), initial_data))
+                    if (CheckCorrectAction(InformationCard.GetInformationString(i), initial_data))
                     {
                         number_command = i;
                         break;
@@ -249,10 +249,10 @@ namespace Game
                 }
                 if (number_command == 0)
                 {
-                    Regex reg = new Regex(SearchInformation._ParseStart);
+                    Regex reg = new Regex(InformationCard._ParseStart);
                     var cards = reg.Replace(initial_data, " ").GetUpperStringToArray();
                     foreach (string card in cards)
-                        if (CheckCorrectAction(SearchInformation._ParseCard, card))
+                        if (CheckCorrectAction(InformationCard._ParseCard, card))
                             _data.Add(card);
                 }
                 else if (number_command != -1)
@@ -276,7 +276,7 @@ namespace Game
                 bool IsDigit = newPath[2].ToString().Length == newPath[2].ToString().Where(c => char.IsDigit(c)).Count();
                 if (!IsDigit)
                 {
-                    foreach (var value in Enum.GetValues(typeof(SearchInformation.Color)))
+                    foreach (var value in Enum.GetValues(typeof(InformationCard.Color)))
                     {
                         if (newPath[2].ToString().Contains(value.ToString().ToUpper()))
                         {
@@ -304,7 +304,7 @@ namespace Game
             /// <param name="command">комманда</param>
             /// <param name="state_table">информация о столе</param>
             /// <returns></returns>
-            Card PlayerAction(string value, SearchInformation.Command command, string state_table);//Выбор действия 
+            Card PlayerAction(string value, InformationCard.Command command, string state_table);//Выбор действия 
         }
         /// <summary>
         /// Действия предусмотренные для игрока в этой игрой
@@ -349,8 +349,8 @@ namespace Game
             //Рискованная ли карта
             private bool _RiskyCard = true;
             //Массивы для сохранения информации
-            private InfoStorage graphColorChange;
-            private InfoStorage graphRankChange;
+            private InformationCardStorage graphColorChange;
+            private InformationCardStorage graphRankChange;
             private string Name;
             private readonly bool IsLevel;
             private readonly int MaxCountCard;
@@ -359,11 +359,11 @@ namespace Game
             public Player(string name, bool level)
             {
                 myDeck = new PlayerDeck();
-                graphColorChange = new InfoStorage();
-                graphRankChange = new InfoStorage();
+                graphColorChange = new InformationCardStorage();
+                graphRankChange = new InformationCardStorage();
                 Name = name;
                 IsLevel = level;
-                MaxCountCard = SearchInformation.MaxCardForHand;
+                MaxCountCard = InformationCard.MaxCardForHand;
             }
             /// <summary>
             /// Записать информацию о цвете карты
@@ -392,7 +392,7 @@ namespace Game
             /// <param name="column">столбец массива состояния</param>
             /// <param name="value">точная информаци о карте</param>
             /// <param name="_graph">массив(цвет или ранг)</param>
-            private void SetChange(int line, int column, int value, InfoStorage _graph)
+            private void SetChange(int line, int column, int value, InformationCardStorage _graph)
             {
                 #region helpinfo
                 //значение 1 - игрок точно знает цвет или ранг карты взависимости от _graph
@@ -446,7 +446,7 @@ namespace Game
             /// <param name="state">цвет или ранг</param>
             /// <param name="value">точное значение карты(цвет или ранг)</param>
             /// <param name="table_info">состояние стола</param>
-            private void CheckTheCorrect(int number_card, InfoStorage _graph, bool state, int value, string table_info)
+            private void CheckTheCorrect(int number_card, InformationCardStorage _graph, bool state, int value, string table_info)
             {
                 int possibility_table = 0;
                 int possibility = 0;
@@ -457,12 +457,12 @@ namespace Game
                         possibility++;
                         if (state)
                         {
-                            if (table_info.Contains(SearchInformation.GetIntByColor(value) + (k)))
+                            if (table_info.Contains(InformationCard.GetIntByColor(value) + (k)))
                                 possibility_table++;
                         }
                         else
                         {
-                            if (table_info.Contains(SearchInformation.GetIntByColor(k) + (value)))
+                            if (table_info.Contains(InformationCard.GetIntByColor(k) + (value)))
                                 possibility_table++;
                         }
                     }
@@ -494,7 +494,7 @@ namespace Game
                 foreach (var cell in Possibility)
                 {
                     foreach (var cell_table in newData)
-                        if (cell_table.Contains(SearchInformation.GetIntByColor(cell.Item1) + (cell.Item2 - 1).ToString()))
+                        if (cell_table.Contains(InformationCard.GetIntByColor(cell.Item1) + (cell.Item2 - 1).ToString()))
                             possibility_table++;
 
                 }
@@ -541,17 +541,10 @@ namespace Game
             /// <returns></returns>
             protected override Card Drop(int number_card)
             {
-                try
-                {
-                    Card fc = (Card)myDeck[number_card].Clone();
-                    if (IsLevel)
-                        this.SetNewInfo(number_card);
-                    return fc;
-                }
-                catch (ArgumentOutOfRangeException e)
-                {
-                    throw new CardException("Нет такой карты в руке");
-                }
+                Card fc = (Card)myDeck[number_card].Clone();
+                if (IsLevel)
+                    this.SetNewInfo(number_card);
+                return fc;
             }
             /// <summary>
             /// Записать подсказку о цвете
@@ -570,29 +563,29 @@ namespace Game
                 _IsSay = ConvertIsSay(initial_data, 1);
             }
             //Выбор действия по команде
-            public Card PlayerAction(string text_command, SearchInformation.Command c, string table_info)
+            public Card PlayerAction(string text_command, InformationCard.Command c, string table_info)
             {
                 if (Command != null)
                 {
                     switch (c)
                     {
-                        case SearchInformation.Command.Play:
+                        case InformationCard.Command.Play:
                             {
                                 Command(text_command);
                                 return this.Play(Convert.ToInt32(text_command), table_info);
                             }
-                        case SearchInformation.Command.Drop:
+                        case InformationCard.Command.Drop:
                             {
                                 Command(text_command);
                                 return this.Drop(Convert.ToInt32(text_command));
                             }
-                        case SearchInformation.Command.Color:
+                        case InformationCard.Command.Color:
                             {
                                 Command(text_command);
                                 this.TellColor(text_command.StringToArray());
                                 return null;
                             }
-                        case SearchInformation.Command.Rank:
+                        case InformationCard.Command.Rank:
                             {
                                 Command(text_command);
                                 this.TellRank(text_command.StringToArray());
@@ -614,7 +607,7 @@ namespace Game
             /// <param name="card">Карта</param>
             public void Push(Card card)
             {
-                myDeck.PushCard(card);
+                myDeck[0] = (card);
             }
             /// <summary>
             /// Положить карту в руку игрока
@@ -622,7 +615,7 @@ namespace Game
             /// <param name="data">Карта в строковом представление</param>
             public void Push(string data)
             {
-                myDeck.PushCard(data);
+                Push(new Card(data[0].ToString(), Convert.ToInt32(data[1].ToString())));
             }
             /// <summary>
             /// Вернуть значение о рискованности карты
@@ -709,7 +702,7 @@ namespace Game
             {
                 this._Number = number;
                 this._ShortColor = color;
-                this._Color = Convert.ToInt32(SearchInformation.GetShortColorToInt(color));
+                this._Color = Convert.ToInt32(InformationCard.GetShortColorToInt(color));
             }
             public int Number
             {
@@ -750,7 +743,7 @@ namespace Game
         /// <summary>
         /// Главная колода
         /// </summary>
-        class GeneralDeck   
+        class GeneralDeck
         {
             #region singleton
             private static readonly Lazy<GeneralDeck> lazy =
@@ -766,39 +759,20 @@ namespace Game
             /// Добавить карту в колоду
             /// </summary>
             /// <param name="card">Карта</param>
-            public virtual void PushCard(Card card)
+            protected virtual void PushCard(Card card)
             {
                 CardList.Add(card);
             }
             /// <summary>
-            /// Добавить карту в колоду
-            /// </summary>
-            /// <param name="data">Карта</param>
-            public virtual void PushCard(string data)
-            {
-                var newData = data.StringToArray(); 
-                foreach (string card in newData)
-                {
-                    PushCard(new Card(card[0].ToString(), Convert.ToInt32(card[1].ToString())));
-                }
-            }
-            /// <summary>
-            /// При взятие карты из колоды удалить её.
+            /// Достать карту из колоды
             /// </summary>
             /// <param name="index">позиция в руке</param>
             /// <returns></returns>
             private Card UpdateList(int index = 0)
             {
-                try
-                {
                     Card card = (Card)CardList[index].Clone();
                     CardList.RemoveAt(index);
                     return card;
-                }
-                catch (ArgumentOutOfRangeException e)
-                {
-                    throw new CardException("Ошибка.Получен отрицательный или превыщающий число карт индекс");
-                }
             }
             /// <summary>
             /// Посмотреть значения ранга и цвета не извлекая карты из руки. Только для вывода состояния на экран.
@@ -825,6 +799,10 @@ namespace Game
                 {
                     return UpdateList(index);
                 }
+                set
+                {
+                    PushCard(value);
+                }
             }
             public int CountCard
             {
@@ -842,10 +820,10 @@ namespace Game
         {
             public PlayerDeck()
                 : base()
-            {}
-            public override void PushCard(Card card)
+            { }
+            protected override void PushCard(Card card)
             {
-                if (CountCard < SearchInformation.MaxCardForHand)
+                if (CountCard < InformationCard.MaxCardForHand)
                 {
                     base.PushCard(card);
                 }
@@ -853,11 +831,6 @@ namespace Game
                 {
                     throw new CardException("Количество карт для игрока превысило допустимое значение");
                 }
-            }
-            public override void PushCard(string data)
-            {
-                Card cards = new Card((data[0]).ToString(), Convert.ToInt32((data[1]).ToString()));
-                PushCard(cards);
             }
             /// <summary>
             /// Посмотреть значения ранга и цвета не извлекая карты из руки. Только для вывода состояния на экран.
@@ -879,18 +852,18 @@ namespace Game
             new Lazy<FieldDeck>(() => new FieldDeck());
             public static FieldDeck FieldInstance { get { return lazy.Value; } }
             #endregion
-            private InfoStorage graph;
+            private InformationCardStorage graph;
             private FieldDeck()
                 : base()
             {
-                graph = new InfoStorage();
+                graph = new InformationCardStorage();
             }
             public override void Clear()
             {
                 base.Clear();
                 graph.Clear();
             }
-            public override void PushCard(Card card)
+            protected override void PushCard(Card card)
             {
                 int color = card.Color;
                 if (!graph.CompareWithOne(color, card.Number - 1) && graph.CheckCorrectPreviousPosition(color, card.Number - 1))
@@ -903,23 +876,14 @@ namespace Game
                     throw new CardException("Не корректная карта");
                 }
             }
-            public override void PushCard(string data)
-            {
-                var newData = data.GetUpperStringToArray();
-                foreach (string cards in newData)
-                {
-                    Card card = new Card((cards[0]).ToString(), Convert.ToInt32((cards[1]).ToString()));
-                    PushCard(card);
-                }
-            }
             public override string ToString()
             {
                 string line_state = String.Empty;
                 int max_rank = 0;
-                int[] info_rank = new int[SearchInformation.MaxCardForHand];
-                for (int i = 0; i < SearchInformation.MaxCardForHand; i++)
+                int[] info_rank = new int[InformationCard.MaxCardForHand];
+                for (int i = 0; i < InformationCard.MaxCardForHand; i++)
                 {
-                    for (int j = 0; j < SearchInformation.MaxCardForHand; j++)
+                    for (int j = 0; j < InformationCard.MaxCardForHand; j++)
                         if (graph.CompareWithOne(i, j))
                             max_rank++;
 
@@ -927,7 +891,7 @@ namespace Game
                     max_rank = 0;
                 }
                 for (int i = 0; i < info_rank.Length; i++)
-                    line_state += string.Format(SearchInformation.GetIntByColor(i) + info_rank[i].ToString() + " ");
+                    line_state += string.Format(InformationCard.GetIntByColor(i) + info_rank[i].ToString() + " ");
                 return line_state;
             }
             public override Card this[int index]
@@ -953,13 +917,9 @@ namespace Game
                 : base()
             {
             }
-            public override void PushCard(Card card)
+            protected override void PushCard(Card card)
             {
                 base.PushCard(card);
-            }
-            public new void PushCard(string card)
-            {
-                    PushCard(new Card(card[0].ToString(), Convert.ToInt32(card[1].ToString())));
             }
             public override Card this[int index]
             {
@@ -985,7 +945,7 @@ namespace Game
             private bool TurnPlayer = true;// переменная для смены хода. true - первый игрок, false - 2
             private int CorrectCard = 0;//количество корректных карт
             private int Number_Of_Turns = 0;//количество ходов
-            private int[] PlayerIsSay = new int[SearchInformation.MaxCardForHand + 2];//массив для хранения информации , подсказка для другого игрока
+            private int[] PlayerIsSay = new int[InformationCard.MaxCardForHand + 2];//массив для хранения информации , подсказка для другого игрока
             private bool Isay = false;//Подсказал ли игрок на этом ходу
             private bool IsGame = false;//переменная для хранения состояния игры. Пока false нельзя сыграть,сбросить,подсказать карту.
 
@@ -1009,8 +969,6 @@ namespace Game
                     //Номер команды + Список аргументов для выполнения команд
                     var MyTurple = ParseInformationCard.ConvertInputDataToCommand(resource);
                     int command_int = MyTurple.Item1;
-                    //string command_text = string.Join(" ", MyTurple.Item2.Select(x => x.ToString()).ToArray());
-                    //Выполнение текущего хода
                     if (TurnPlayer)
                         SetCommand(command_int, MyTurple.Item2, _onePlayer);
                     else
@@ -1059,22 +1017,22 @@ namespace Game
                 }
             }
             /// <summary>
-            /// Проверка сказанного игроком pl
+            /// Проверка сказанного игроком player
             /// </summary>
             /// <param name="player">текущий игрок</param>
             private void CheckAndSetTellInfo(Player player)
             {
                 int state = PlayerIsSay[0];
                 int count = PlayerIsSay.Length - 2;
-                var newPath = player.ToString().StringToArray();
-                int max = newPath.ToList().Count;
+                var newData = player.ToString().StringToArray();
+                int max = newData.ToList().Count;
                 int line = PlayerIsSay[1];
                 PlayerIsSay = PlayerIsSay.Skip(2).ToArray();
                 if (state == 0)
                 {
                     for (int i = 0; i < max; i++)
                     {
-                        if (SearchInformation.GetShortColorToInt(newPath[i][0].ToString()) == line)
+                        if (InformationCard.GetShortColorToInt(newData[i][0].ToString()) == line)
                             count--;
                     }
                     for (int i = 0; i < PlayerIsSay.Length; i++)
@@ -1086,7 +1044,7 @@ namespace Game
                 {
                     for (int i = 0; i < max; i++)
                     {
-                        if (Convert.ToInt32(newPath[i][1].ToString()) - 1 == line)
+                        if (Convert.ToInt32(newData[i][1].ToString()) - 1 == line)
                             count--;
                     }
                     for (int i = 0; i < PlayerIsSay.Length; i++)
@@ -1119,26 +1077,30 @@ namespace Game
                 var newData = command.GetUpperStringToArray();
                 if (newData.Length > 10)
                 {
-                    for (int i = 0; i < SearchInformation.MaxCardForHand * 2; i++)
+                    for (int i = 0; i < InformationCard.MaxCardForHand * 2; i++)
                     {
-                        if (_onePlayer.GetCountCard < SearchInformation.MaxCardForHand)
+                        if (_onePlayer.GetCountCard < InformationCard.MaxCardForHand)
                             _onePlayer.Push(newData[i]);
                         else
-                            if (_twoPlayer.GetCountCard < SearchInformation.MaxCardForHand)
+                            if (_twoPlayer.GetCountCard < InformationCard.MaxCardForHand)
                                 _twoPlayer.Push(newData[i]);
                     }
-                    generaldeck.PushCard(string.Join(" ", newData.Skip(SearchInformation.MaxCardForHand * 2).ToArray()));
+                    newData = newData.Skip(InformationCard.MaxCardForHand * 2).ToArray();
+                    foreach (var data in newData)
+                    {
+                        generaldeck[0] = (new Card(data[0].ToString(), Convert.ToInt32(data[1].ToString())));
+                    }
                 }
                 else
-                   throw new CardException("Не корректное число карт для начала игры");
+                    throw new CardException("Не корректное число карт для начала игры");
             }
             private void PlayCard(string command, Player player)
             {
                 Card fc = null;
                 try
                 {
-                    fc = (Card)player.PlayerAction(command, SearchInformation.Command.Play, fieldeck.ToString()).Clone();
-                    fieldeck.PushCard(fc);
+                    fc = (Card)player.PlayerAction(command, InformationCard.Command.Play, fieldeck.ToString()).Clone();
+                    fieldeck[0] = (fc);
                     player.Push(generaldeck[0]);
                     if (!player.GetInfoRisky)
                         CorrectCard++;
@@ -1146,23 +1108,23 @@ namespace Game
                 catch (CardException e)
                 {
                     Conflict = true;
-                    stackdeck.PushCard(fc);
+                    stackdeck[0] = (fc);
                 }
             }
             private void DropCrad(string command, Player player)
             {
-                stackdeck.PushCard(player.PlayerAction(command, SearchInformation.Command.Drop, null));
+                stackdeck[0] = (player.PlayerAction(command, InformationCard.Command.Drop, null));
                 player.Push(generaldeck[0]);
             }
             private void TellColor(string command, Player player)
             {
-                player.PlayerAction(command, SearchInformation.Command.Color, null);
+                player.PlayerAction(command, InformationCard.Command.Color, null);
                 PlayerIsSay = player.IsSay;
                 Isay = true;
             }
             private void TellRank(string command, Player player)
             {
-                player.PlayerAction(command, SearchInformation.Command.Rank, null);
+                player.PlayerAction(command, InformationCard.Command.Rank, null);
                 PlayerIsSay = player.IsSay;
                 Isay = true;
             }
