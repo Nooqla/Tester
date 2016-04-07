@@ -450,6 +450,8 @@ namespace Game
             {
                 int possibility_table = 0;
                 int possibility = 0;
+                int count_rank = 0;
+                var table = table_info.StringToArray();
                 for (int k = 0; k < MaxCountCard; k++)
                 {
                     if (_graph[k, number_card] == 2)
@@ -457,8 +459,14 @@ namespace Game
                         possibility++;
                         if (state)
                         {
+                            count_rank++;
                             if (table_info.Contains(InformationCard.GetIntByColor(value) + (k)))
                                 possibility_table++;
+                            if (count_rank > 1)
+                            {
+                                _RiskyCard = true;
+                                return;
+                            }
                         }
                         else
                         {
@@ -471,7 +479,7 @@ namespace Game
                 if (possibility_table == possibility)
                     _RiskyCard = false;
                 else
-                    _RiskyCard = true;
+                   _RiskyCard = true;                 
             }
             /// <summary>
             /// Если нет точной информации о параметрах карты
@@ -482,26 +490,38 @@ namespace Game
             {
                 var newData = table_info.StringToArray();
                 int possibility_table = 0;
+                int count_rank = 0;
                 List<Tuple<int, int>> Possibility = new List<Tuple<int, int>>();
                 for (int i = 0; i < MaxCountCard; i++)
                 {
                     if (graphColorChange[number_card, i] == 2)
                         for (int j = 0; j < MaxCountCard; j++)
                             if (graphRankChange[number_card, j] == 2)
+                            {
+                                count_rank++;
                                 Possibility.Add(Tuple.Create(i, j));
+                                if (count_rank > 1)
+                                {
+                                    _RiskyCard = true;
+                                    return;
+                                }
+                            }
 
                 }
                 foreach (var cell in Possibility)
                 {
                     foreach (var cell_table in newData)
                         if (cell_table.Contains(InformationCard.GetIntByColor(cell.Item1) + (cell.Item2 - 1).ToString()))
+                        {
                             possibility_table++;
+                            break;
+                        }
 
                 }
                 if (possibility_table == Possibility.Count)
                     _RiskyCard = false;
                 else
-                    _RiskyCard = true;
+                    _RiskyCard = true;                   
             }
             /// <summary>
             /// Сыграть карту на стол
@@ -852,6 +872,7 @@ namespace Game
             new Lazy<FieldDeck>(() => new FieldDeck());
             public static FieldDeck FieldInstance { get { return lazy.Value; } }
             #endregion
+            private Card[,] CardList = new Card[InformationCard.MaxCardForHand, InformationCard.MaxCardForHand];
             private InformationCardStorage graph;
             private FieldDeck()
                 : base()
